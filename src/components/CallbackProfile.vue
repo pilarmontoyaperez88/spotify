@@ -1,8 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-
-import { getAccessToken, fetchProfile } from '@/service/authService'
+import { redirectToAuthCodeFlow, getAccessToken, fetchProfile } from '@/service/authService'
 
 const profile = ref(null)
 
@@ -22,6 +21,7 @@ onMounted(async () => {
     }
   } else {
     console.error('No authorization code found in the URL.')
+    redirectToAuthCodeFlow(clientId)
   }
 })
 </script>

@@ -1,11 +1,9 @@
 <script setup>
-import { ref } from 'vue'
-import { redirectToAuthCodeFlow } from '@/service/authService'
-
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 
 function redirectToAuth() {
-  if (clientId) {// Ahora redirige correctamente
+  if (clientId) {
+    // Ahora redirige correctamente
   } else {
     console.error('clientId is not defined!')
   }
@@ -14,7 +12,7 @@ function redirectToAuth() {
 
 <template>
   <div class="home">
-    <h1>Bienvenido a tu aplciación de Spotify</h1>
+    <h1>Bienvenido a tu app de Spotify</h1>
     <p>Haz click en el botón para ver tu perfil de Spotify.</p>
     <button @click="redirectToAuth">Login con Spotify</button>
   </div>
