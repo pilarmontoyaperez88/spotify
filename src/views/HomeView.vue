@@ -1,9 +1,10 @@
 <script setup>
+import { redirectToAuthCodeFlow } from '@/service/authService'
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 
 function redirectToAuth() {
   if (clientId) {
-    // Ahora redirige correctamente
+    redirectToAuthCodeFlow(clientId)
   } else {
     console.error('clientId is not defined!')
   }
