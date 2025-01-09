@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { redirectToAuthCodeFlow, getAccessToken, fetchProfile } from '@/service/authService'
+import { redirectToAuthCodeFlow, getAccessToken } from '@/service/authService'
+import axios from 'axios'
+import useAPI from '@/hooks/api'
+import router from '@/router'
 
 const profile = ref(null)
 
@@ -10,15 +13,24 @@ const code = route.query.code
 
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
 
-onMounted(async () => {
-  if (code) {
-    try {
-      const accessToken = await getAccessToken(clientId, code)
+const { execute: loadProfile } = useAPI(async (token) => {
+  const response = await axios.get('https://api.spotify.com/v1/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return response.data
+})
 
-      profile.value = await fetchProfile(accessToken)
-    } catch (error) {
-      console.error('Error fetching the profile:', error)
-    }
+onMounted(() => {
+  if (code) {
+    getAccessToken(clientId, code)
+      .then((accessToken) => {
+        loadProfile(accessToken).then(() => {
+          router.push({ name: 'global' })
+        })
+      })
+      .catch((error) => {
+        console.error('Error fetching the profile or token:', error)
+      })
   } else {
     console.error('No authorization code found in the URL.')
     redirectToAuthCodeFlow(clientId)
