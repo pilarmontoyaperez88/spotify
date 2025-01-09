@@ -1,23 +1,13 @@
 <script setup>
-import { useAuthStore } from '@/stores/authStore'
 import { redirectToAuthCodeFlow } from '@/service/authService'
-
-const store = useAuthStore()
-
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
-const logoUrl = new URL('@/assets/img/spotify.png', import.meta.url).href
+const logoUrl = new URL('@/assets/spotify.png', import.meta.url).href
 
 function redirectToAuth() {
   if (clientId) {
     redirectToAuthCodeFlow(clientId)
   } else {
     console.error('clientId is not defined!')
-  }
-
-  if (store.isAuthenticated) {
-    console.log('Usuario ya autenticado')
-  } else {
-    console.log('Usuario no autenticado')
   }
 }
 </script>
