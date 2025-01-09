@@ -1,11 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { redirectToAuthCodeFlow, getAccessToken, fetchProfile } from '@/service/authService'
 
 const profile = ref(null)
+const authStore = useAuthStore()
 
 const route = useRoute()
+const router = useRouter()
 const code = route.query.code
 
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
@@ -14,6 +18,8 @@ onMounted(async () => {
   if (code) {
     try {
       const accessToken = await getAccessToken(clientId, code)
+      authStore.setAccessToken(accessToken)
+      router.push('/global')
 
       profile.value = await fetchProfile(accessToken)
     } catch (error) {
