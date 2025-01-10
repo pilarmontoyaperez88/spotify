@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+
 import CallbackProfile from '@/components/CallbackProfile.vue'
 import GlobalView from '@/views/GlobalView.vue'
 
 import LoginView from '@/views/LoginView.vue'
+
 
 
 
