@@ -1,63 +1,49 @@
 import useAPI from '@/hooks/api'
 import axios from 'axios'
+import router from '@/router'
 import { useAuthStore } from '@/stores/authStore'
 
-export function fetchPlaylists() {
-  const { accessToken } = useAuthStore()
+const apiClient = axios.create({
+  baseURL: 'https://api.spotify.com/v1',
+  timeout: 10000,
+})
 
-  // Asegurarse de que hay un token
-  if (!accessToken) {
-    console.error('No se encontró el token de acceso')
-    return
-  }
+apiClient.interceptors.request.use(
+  (config) => {
+    const authStore = useAuthStore()
+    const token = authStore.token || localStorage.getItem('spotify_token')
 
-  return useAPI(() =>
-    axios
-      .get('https://api.spotify.com/v1/me/playlists', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => response.data.items)
-      .catch((error) => {
-        console.error('Error al obtener las playlists:', error)
-        throw new Error('Error al obtener las playlists')
-      }),
-  )
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
+    }
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
+
+apiClient.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn('Unauthorized. Redirecting to login...')
+      router.push('/login')
+    }
+
+    return Promise.reject(error)
+  },
+)
+
+export default {
+  fetchPlaylists() {
+    return useAPI(() => apiClient.get('/me/playlists').then((res) => res.data.items))
+  },
+
+  fetchPlaylistTracks(playlist_id) {
+    return useAPI(() => apiClient.get(`/playlists/${playlist_id}/tracks`).then((res) => res.data))
+  },
 }
-
-export async function fetchPlaylistDetails(playlistId) {
-  const { accessToken } = useAuthStore()
-  if (!accessToken) {
-    console.error('No se encontró el token de acceso')
-    throw new Error('Token no disponible')
-  }
-  return useAPI(() =>
-    axios
-      .get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      .then((response) => response.data.items)
-      .catch((error) => {
-        console.log('error al obtener los detalles', error)
-        throw new Error('error al obtener los detalles')
-      }),
-  )
-}
-
-//   export async function createCollaborativePlaylist(token, name, description) {
-//     const response = await fetch("https://api.spotify.com/v1/users/{user_id}/playlists", {
-//       method: "POST",
-//       headers: {
-//         "Authorization": `Bearer ${token}`,
-//         "Content-Type": "application/json"
-//       },
-//       body: JSON.stringify({
-//         name,
-//         description,
-//         public: false,
-//         collaborative: true
-//       })
-//     });
-//     const data = await response.json();
-//     return data;  // Detalles de la nueva lista colaborativa creada

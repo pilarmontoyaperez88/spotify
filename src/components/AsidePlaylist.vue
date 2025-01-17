@@ -1,40 +1,54 @@
 <script setup>
 import { ref, watchEffect, computed } from 'vue'
-import { fetchPlaylists } from '@/service/spotifyService'
-// import useAPI from '@/hooks/api'
+
+import spotifyService from '@/service/spotifyService'
 import { useAuthStore } from '@/stores/authStore'
+
+const emit = defineEmits(['playlist-selected'])
 
 const authStore = useAuthStore()
 
 const token = authStore.accessToken || localStorage.getItem('spotify_token')
-const { execute, data, isLoading, isError } = fetchPlaylists()
-
-watchEffect(() => {
-  if (token) {
-    execute(token)
-    console.log('Token:', token)
-  }
-})
 
 const playlists = ref([])
 
+const {
+  execute: fetchAllPlaylists,
+  data: playlistsData,
+  isLoading: isPlaylistsLoading,
+  isError: isPlaylistsError,
+} = spotifyService.fetchPlaylists()
+
 watchEffect(() => {
-  if (data.value) {
-    playlists.value = data.value
+  if (token) {
+    fetchAllPlaylists()
+    console.log('Token:', token)
+  } else {
+    console.log('No se encontró el token de autenticación')
+  }
+})
+
+watchEffect(() => {
+  if (playlistsData.value) {
+    playlists.value = playlistsData.value
   }
 })
 
 const computedPlaylists = computed(() => {
   return playlists.value || []
 })
+
+const selectPlaylist = (id) => {
+  emit('playlist-selected', id)
+}
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">
+  <div v-if="isPlaylistsLoading" class="loading">
     <p>Loading playlists...</p>
   </div>
 
-  <div v-else-if="isError" class="error">
+  <div v-else-if="isPlaylistsError" class="error">
     <p>There was an error fetching the playlists. Please try again.</p>
   </div>
 
@@ -50,7 +64,7 @@ const computedPlaylists = computed(() => {
             class="playlist-image"
           />
           <h3>{{ playlist.name }}</h3>
-          <p>{{ playlist.description || 'No description available' }}</p>
+
           <button @click="selectPlaylist(playlist.id)">View Playlist</button>
         </div>
       </li>
